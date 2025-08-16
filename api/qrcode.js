@@ -7,26 +7,23 @@ const redis = new Redis({
 
 const LIMIT = 100
 const targetUrl = "https://jiajiale.ai/"
-const expiredUrl = "/expired.html" // Vercel public 下的失效页面
+const expiredUrl = "/expired.html"
 
 export default async function handler(req, res) {
   try {
-    // 先获取当前计数，不立即增加
-    const count = parseInt(await redis.get("qr_count")) || 0
+    // 先增加计数
+    const newCount = await redis.incr("qr_count")
 
-    if (count >= LIMIT) {
-      console.log(`QR scan limit exceeded (count=${count}). Redirecting to expired page.`)
-      // 超过次数 → 跳转失效页面，不再增加计数
+    if (newCount > LIMIT) {
+      console.log(`QR scan limit exceeded (count=${newCount}). Redirecting to expired page.`)
+      // 超过次数 → 跳转失效页面
       res.writeHead(302, { Location: expiredUrl })
       res.end()
       return
     }
 
-    // 正常访问 → 增加计数
-    const newCount = await redis.incr("qr_count")
     console.log(`QR scan occurred. Current count: ${newCount}`)
-
-    // 跳转到目标页面
+    // 正常跳转
     res.writeHead(302, { Location: targetUrl })
     res.end()
   } catch (err) {
