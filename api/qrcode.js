@@ -7,7 +7,7 @@ const redis = new Redis({
 
 const targetUrl = "https://jiajiale.ai/";
 const expiredUrl = "/expired.html";
-const limit = 100;
+const limit = 500;
 
 export default async function handler(req, res) {
   try {
